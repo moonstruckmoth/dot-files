@@ -1,0 +1,1388 @@
+# ============================================================================================
+# Autoload screen if we aren't in it.  (Thanks Fjord!)
+# if [[ $STY = '' ]] then screen -xR; fi
+
+#{{{ ZSH Modules
+
+autoload -U compinit promptinit zcalc zsh-mime-setup
+compinit
+promptinit
+zsh-mime-setup
+
+#}}}
+
+#{{{ Options
+
+# why would you type 'cd dir' if you could just type 'dir'?
+setopt AUTO_CD
+
+# Now we can pipe to multiple outputs!
+setopt MULTIOS
+
+# Spell check commands!  (Sometimes annoying)
+setopt CORRECT
+
+# This makes cd=pushd
+setopt AUTO_PUSHD
+
+# This will use named dirs when possible
+setopt AUTO_NAME_DIRS
+
+# If we have a glob this will expand it
+setopt GLOB_COMPLETE
+setopt PUSHD_MINUS
+
+# No more annoying pushd messages...
+# setopt PUSHD_SILENT
+
+# blank pushd goes to home
+setopt PUSHD_TO_HOME
+
+# this will ignore multiple directories for the stack.  Useful?  I dunno.
+setopt PUSHD_IGNORE_DUPS
+
+# 10 second wait if you do something that will delete everything.  I wish I'd had this before...
+setopt RM_STAR_WAIT
+
+# use magic (this is default, but it can't hurt!)
+setopt ZLE
+
+setopt NO_HUP
+
+setopt VI
+
+# only fools wouldn't do this ;-)
+export EDITOR="vim"
+export TERM=xterm
+
+
+setopt IGNORE_EOF
+
+# If I could disable Ctrl-s completely I would!
+setopt NO_FLOW_CONTROL
+
+# beeps are annoying
+setopt NO_BEEP
+
+# Keep echo "station" > station from clobbering station
+setopt NO_CLOBBER
+
+# Case insensitive globbing
+setopt NO_CASE_GLOB
+
+# Be Reasonable!
+setopt NUMERIC_GLOB_SORT
+
+# I don't know why I never set this before.
+setopt EXTENDED_GLOB
+
+# hows about arrays be awesome?  (that is, frew${cool}frew has frew surrounding all the variables, not just first and last
+setopt RC_EXPAND_PARAM
+
+#}}}
+
+#{{{ Variables
+export MATHPATH="$MANPATH:/usr/local/texlive/2007/texmf/doc/man"
+export INFOPATH="$INFOPATH:/usr/local/texlive/2007/texmf/doc/info"
+export PATH="$PATH:/usr/local/texlive/2007/bin/i386-linux:~/sw/tor-browser_en-US"
+export RI="--format ansi"
+
+declare -U path
+
+#export LANG=en_US
+export PAGER=most
+#}}}
+
+#{{{ External Files
+
+# Include stuff that should only be on this
+if [[ -r ~/.localinclude ]]; then
+    source ~/.localinclude
+fi
+
+# Include local directories
+if [[ -r ~/.localdirs ]]; then
+        source ~/.localdirs
+fi
+
+autoload run-help
+HELPDIR=~/zsh_help
+
+#}}}
+
+#{{{ Aliases
+
+#{{{ Shell Conveniences
+
+alias sz='source ~/.zshrc'
+alias ez='v ~/.zshrc'
+# alias mk=popd
+
+#}}}
+
+#{{{ Package management
+
+# if [[ -x =aptitude ]]; then
+#   alias attd="sudo xterm -C aptitude"
+# else
+#   if [[ -x =emerge ]]; then
+#     alias emu='sudo emerge -uDN world'
+#   fi
+# fi
+
+#}}}
+
+#{{{ SSH
+
+if [[ $HOST = FrewSchmidt ]]; then
+    alias sf='ssh frew@FrewSchmidt2'
+else
+    alias sf='ssh frew@FrewSchmidt'
+fi
+
+#}}}
+
+#{{{ Misc.
+# CPAN and sudo don't work together or something
+if [[ -x `which perl` ]]; then
+  alias cpan="su root -c 'perl -MCPAN -e \"shell\"'"
+fi
+
+# Convenient.  Also works in Gentoo or Ubuntu
+if [[ -x `which irb1.8` ]]; then
+  alias irb='irb1.8 --readline -r irb/completion'
+else
+  alias irb='irb --readline -r irb/completion'
+fi
+
+# For some reason the -ui doesn't work on Ubuntu... I need to deal with that
+# somehow...
+
+
+# copy with a progress bar.
+# alias cpv="rsync -poghb --backup-dir=/tmp/rsync -e /dev/null --progress --"
+
+# I use the commands like, every day now
+alias seinr="sudo /etc/init.d/networking restart"
+# if [[ -x `which gksudo` && -x `which wlassistant` ]]; then
+#   alias gkw="gksudo wlassistant&"
+# fi
+# 
+# if [[ -x `which delish` ]]; then
+#   alias delish="noglob delish"
+# fi
+
+alias tomes='screen -S tome -c /home/frew/.tomescreenrc'
+
+# if [[ -x /home/frew/personal/dino ]]; then
+#   dinoray=( /home/frew/personal/dino/* )
+#   alias dino='feh $dinoray[$RANDOM%$#dinoray+1]'
+# fi
+
+#}}}
+
+#{{{ Globals...
+
+alias -g G="| grep"
+alias -g L="| less"
+
+#}}}
+
+#{{{ Suffixes...
+
+# if [[ -x `which abiword` ]]; then
+#   alias -s doc=abiword
+# fi
+# if [[ -x `which ooimpress` ]]; then
+#   alias -s ppt='ooimpress &> /dev/null '
+# fi
+
+if [[ $DISPLAY = '' ]] then
+  alias -s txt=vi
+else
+  alias -s txt=gvim
+fi
+
+#}}}
+
+#}}}
+
+#{{{ Completion Stuff
+
+bindkey -M viins '\C-i' complete-word
+
+# Faster! (?)
+zstyle ':completion::complete:*' use-cache 1
+
+# case insensitive completion
+zstyle ':completion:*' matcher-list 'm:{a-z}={A-Z}'
+
+zstyle ':completion:*' verbose yes
+zstyle ':completion:*:descriptions' format '%B%d%b'
+zstyle ':completion:*:messages' format '%d'
+zstyle ':completion:*:warnings' format 'No matches for: %d'
+zstyle ':completion:*' group-name ''
+#zstyle ':completion:*' completer _oldlist _expand _force_rehash _complete
+zstyle ':completion:*' completer _expand _force_rehash _complete _approximate _ignored
+
+# generate descriptions with magic.
+zstyle ':completion:*' auto-description 'specify: %d'
+
+# Don't prompt for a huge list, page it!
+zstyle ':completion:*:default' list-prompt '%S%M matches%s'
+
+# Don't prompt for a huge list, menu it!
+zstyle ':completion:*:default' menu 'select=0'
+
+# Have the newer files last so I see them first
+zstyle ':completion:*' file-sort modification reverse
+
+# color code completion!!!!  Wohoo!
+zstyle ':completion:*' list-colors "=(#b) #([0-9]#)*=36=31"
+
+unsetopt LIST_AMBIGUOUS
+setopt  COMPLETE_IN_WORD
+
+# Separate man page sections.  Neat.
+zstyle ':completion:*:manuals' separate-sections true
+
+# Egomaniac!
+zstyle ':completion:*' list-separator 'fREW'
+
+# complete with a menu for xwindow ids
+zstyle ':completion:*:windows' menu on=0
+zstyle ':completion:*:expand:*' tag-order all-expansions
+
+# more errors allowed for large words and fewer for small words
+zstyle ':completion:*:approximate:*' max-errors 'reply=(  $((  ($#PREFIX+$#SUFFIX)/3  ))  )'
+
+# Errors format
+zstyle ':completion:*:corrections' format '%B%d (errors %e)%b'
+
+# Don't complete stuff already on the line
+zstyle ':completion::*:(rm|vi):*' ignore-line true
+
+# Don't complete directory we are already in (../here)
+zstyle ':completion:*' ignore-parents parent pwd
+
+zstyle ':completion::approximate*:*' prefix-needed false
+
+#}}}
+
+#{{{ Key bindings
+
+# Who doesn't want home and end to work?
+bindkey '\e[1~' beginning-of-line
+bindkey '\e[4~' end-of-line
+
+# Incremental search is elite!
+bindkey -M vicmd "/" history-incremental-search-backward
+bindkey -M vicmd "?" history-incremental-search-forward
+
+# Search based on what you typed in already
+bindkey -M vicmd "//" history-beginning-search-backward
+bindkey -M vicmd "??" history-beginning-search-forward
+
+# Search based on what you typed in already
+bindkey -M viins "^p" history-beginning-search-backward
+bindkey -M viins "^n" history-beginning-search-forward
+
+bindkey "\eOP" run-help
+
+# oh wow!  This is killer...  try it!
+bindkey -M vicmd "q" push-line
+
+# Ensure that arrow keys work as they should
+bindkey '\e[A' up-line-or-history
+bindkey '\e[B' down-line-or-history
+
+bindkey '\eOA' up-line-or-history
+bindkey '\eOB' down-line-or-history
+
+bindkey '\e[C' forward-char
+bindkey '\e[D' backward-char
+
+bindkey '\eOC' forward-char
+bindkey '\eOD' backward-char
+
+bindkey -M viins 'jj' vi-cmd-mode
+bindkey -M vicmd 'u' undo
+
+# Rebind the insert key.  I really can't stand what it currently does.
+bindkey '\e[2~' overwrite-mode
+
+# Rebind the delete key. Again, useless.
+bindkey '\e[3~' delete-char
+
+bindkey -M vicmd '!' edit-command-output
+
+# it's like, space AND completion.  Gnarlbot.
+bindkey -M viins ' ' magic-space
+
+#}}}
+
+#{{{ History Stuff
+
+# Where it gets saved
+HISTFILE=~/.history
+
+# Remember about a years worth of history (AWESOME)
+SAVEHIST=10000
+HISTSIZE=10000
+
+# Don't overwrite, append!
+setopt APPEND_HISTORY
+
+# Write after each command
+# setopt INC_APPEND_HISTORY
+
+# Killer: share history between multiple shells
+setopt SHARE_HISTORY
+
+# If I type cd and then cd again, only save the last one
+setopt HIST_IGNORE_DUPS
+
+# Even if there are commands inbetween commands that are the same, still only save the last one
+setopt HIST_IGNORE_ALL_DUPS
+
+# Pretty    Obvious.  Right?
+setopt HIST_REDUCE_BLANKS
+
+# If a line starts with a space, don't save it.
+setopt HIST_IGNORE_SPACE
+setopt HIST_NO_STORE
+
+# When using a hist thing, make a newline show the change before executing it.
+setopt HIST_VERIFY
+
+# Save the time and how long a command ran
+setopt EXTENDED_HISTORY
+
+setopt HIST_SAVE_NO_DUPS
+setopt HIST_EXPIRE_DUPS_FIRST
+setopt HIST_FIND_NO_DUPS
+
+#}}}
+
+#{{{ Prompt!
+
+host_color=cyan
+history_color=yellow
+user_color=green
+root_color=red
+directory_color=magenta
+error_color=red
+jobs_color=green
+
+host_prompt="%{$fg_bold[$host_color]%}%m%{$reset_color%}"
+
+jobs_prompt1="%{$fg_bold[$jobs_color]%}(%{$reset_color%}"
+
+jobs_prompt2="%{$fg[$jobs_color]%}%j%{$reset_color%}"
+
+jobs_prompt3="%{$fg_bold[$jobs_color]%})%{$reset_color%}"
+
+jobs_total="%(1j.${jobs_prompt1}${jobs_prompt2}${jobs_prompt3} .)"
+
+history_prompt1="%{$fg_bold[$history_color]%}[%{$reset_color%}"
+
+history_prompt2="%{$fg[$history_color]%}%h%{$reset_color%}"
+
+history_prompt3="%{$fg_bold[$history_color]%}]%{$reset_color%}"
+
+history_total="${history_prompt1}${history_prompt2}${history_prompt3}"
+
+error_prompt1="%{$fg_bold[$error_color]%}<%{$reset_color%}"
+
+error_prompt2="%{$fg[$error_color]%}%?%{$reset_color%}"
+
+error_prompt3="%{$fg_bold[$error_color]%}>%{$reset_color%}"
+
+error_total="%(?..${error_prompt1}${error_prompt2}${error_prompt3} )"
+
+case "$TERM" in
+  (screen)
+    function precmd() { print -Pn "\033]0;S $TTY:t{%100<...<%~%<<}\007" }
+  ;;
+  (xterm)
+    directory_prompt=""
+  ;;
+  (*)
+    directory_prompt="%{$fg[$directory_color]%}%~%{$reset_color%} "
+  ;;
+esac
+
+if [[ $USER == root ]]; then
+    post_prompt="%{$fg_bold[$root_color]%}%#%{$reset_color%}"
+else
+    post_prompt="%{$fg_bold[$user_color]%}%#%{$reset_color%}"
+fi
+
+# PS1="${host_prompt} ${jobs_total}${history_total} ${directory_prompt}${error_total}${post_prompt} "
+# PS1="%{$fg_bold[red]%}%m:%{$fg_bold[green]%}%~
+# > %{$reset_color%}"
+# %{$fg_bold[red]%}➜ %{$fg_bold[green]%}%p %{$fg[cyan]%}%c %{$fg_bold[blue]%}$(git_prompt_info)%{$fg_bold[blue]%} % %{$reset_color%}
+
+
+#if [[ $TERM == screen]; then
+     #function precmd() {
+          #print -Pn "\033]0;S $TTY:t{%100<...<%~%<<}\007"
+             #}
+#elsif [[ $TERM == linux ]]; then
+    #precmd () { print -Pn "\e]0;%m: %~\a" }
+#fi
+
+#}}}
+
+#{{{ Functions
+
+#function vi {
+        #LIMIT=$#
+        #for ((i = 1; i <= $LIMIT; i++ )) do
+                #eval file="\$$i"
+                #if [[ -e $file && ! -O $file ]]
+                #then
+                        #otherfile=1
+                #else
+
+                #fi
+        #done
+        #if [[ $otherfile = 1 ]]
+        #then
+                #command sudo vi "$@"
+        #else
+                #command vi "$@"
+        #fi
+#}
+
+_force_rehash() {
+  (( CURRENT == 1 )) && rehash
+  return 1  # Because we didn't really complete anything
+}
+
+edit-command-output() {
+ BUFFER=$(eval $BUFFER)
+ CURSOR=0
+}
+zle -N edit-command-output
+
+function cpv() {
+    rsync -rv --progress $*
+}
+
+function cpv() {
+    rsync -rv --progress --remove-source-files $*
+}
+
+#}}}
+
+#{{{ Testing... Testing...
+#exec 2>>(while read line; do
+#print '\e[91m'${(q)line}'\e[0m' > /dev/tty; done &)
+
+watch=(notme)
+LOGCHECK=0
+
+#}}}
+
+#{{{ ZSH Modules
+
+autoload -U compinit promptinit zcalc zsh-mime-setup
+compinit
+promptinit
+zsh-mime-setup
+
+#}}}# ============================================================================================
+export PAGER=less
+export LESSCHARSET="latin1"
+export LESSOPEN="|/usr/local/bin/lesspipe.sh %s"
+export LESS="-i  -e -M -X -F -R -P%t?f%f \
+:stdin .?pb%pb\%:?lbLine %lb:?bbByte %bb:-..."
+export EDITOR='gvim -f'
+
+# cscope stuff
+export CSCOPE_DB=./.cscope/cscope.out
+
+# Perforce stuff
+export P4PORT=p4p-in80:7004
+export P4EDITOR='gvim -f'
+export P4DIFF='gvimdiff -f'
+export P4MERGE='gvim -f'
+export P4CONFIG=.p4config
+#export P4ROOT=/cygdrive/d/raj/p4ws
+export histr="histring -c green -fiE '^=.*' | histring -c red -fiE '^.*error.*$' | histring -c blue -fiE '^.*warning.*$'"
+
+
+#alias g="gvim -p -geom 80x51+1+1"
+alias du="du -csh"
+alias df="df -kh"
+# alias ls="ls -F --color=auto -h"
+alias ls="ls -F --color=never -h"
+alias lS="ls -S"
+alias lx="ls -lXB"
+alias lk="ls -lSr"
+#alias pjet="enscript -h -G -fCourier9 -d $LPDEST"
+#alias background="xv -root -quit -max -rmode 5"
+alias vim="vim -p"
+alias vd="gvimdiff"
+#alias dt='date "+%d-%m-%Y %H:%M:%S"'
+alias dt='date "+%d%b%y"'
+#alias v='gvim -geom 100x40+0+1 -p --remote-tab-silent +tabm'
+alias more="less"
+#alias find='find -regextype posix-extended'
+
+#-------------------
+# Personal Aliases
+#-------------------
+alias top="xtitle Processes on $HOSTNAME && top"
+#alias make="xtitle Making $(basename $PWD) ; make"
+alias grep="egrep"
+alias rm="rm -i"
+alias cp="cp -i"
+alias mv="mv -i"
+alias ..="cd .."
+alias l="ls -AFl --color | more"
+alias gzip="gzip -9" 
+alias lr="ls -ARFl | less" 
+alias la="ls -A"
+alias ps="ps -afWu `whoami` | less" 
+alias ra="\rm -rf" 
+alias r="su -"
+#alias mp="/local/raj/instSw/mplayer/bin/mplayer -ao alsa9 -fixed-vo -input conf=~/.mplayer/input.conf -menu -channels 2 -font ~/.mplayer/subfont.ttf -osdlevel 2 -subfont-autoscale 1 -subfont-osd-scale 5 -subfont-text-scale 4 -af-adv force=0 -idx -dr -aop list=volnorm,extrastereo:mul=3.45 -autosync 1 -hr-mp3-seek -ffactor 0.75 -vop denoise3d"
+alias mp="mplayer"
+alias rr="\rm -rf"
+# alias man="vman"
+alias gdb="gdb -q"
+alias d="ddd"
+alias xj="tar xvjf"
+alias cj="tar cvjf"
+alias tj="tar tvjf"
+alias xz="tar xvzf"
+alias cz="tar cvzf"
+alias tz="tar tvzf"
+alias mc="alias | grep 'ssh -Y rnetha' | grep -v 'mc='"
+alias llt="ls -hltr"
+alias lt="ls -tr"
+alias gr='grep -R'
+alias mt='make 2>&1 | tee'
+alias swp='ls ~/.tmp'
+alias d='dict'
+alias lsd='\ls --color -d */'
+alias rsr='rsync --partial --progress --rsh=ssh -avzR'
+alias rs='rsync --partial --progress --rsh=ssh -avz'
+alias x='exit'
+alias c='clear'
+alias rd='rdesktop -a 16 -u raj w2k3rdp'
+alias wgetm='wget -m -k -E -c -nH -np'
+#alias wgetmc='wget -m -k -E -c -nH -np --cut-dirs='
+alias fb='declare -f'
+alias gpg='gpg --no-secmem-warning --quiet --no-mdc-warning'
+alias dir='basename `pwd`'
+alias ctags='ctags --recurse --language-force=c++ --extra=+q --fields=+i'
+alias .cc='gpg -d ~/.tmp/.cc.gpg'
+
+# screen related
+#alias screen='screen-4.1.0'
+alias sc='screen'
+alias she='v ~/fundaes/screenInfo.txt'
+alias sls='screen -ls'
+#alias sa='screen -dR'
+#alias sa="screen -r -d `sls | grep T3500 | awk '{print $1}'`"
+alias sw='screen -wipe'
+alias ds='dirs -v | head'
+alias dirsa='dirs -v'
+alias ppd='popd'
+# spelling typos
+alias xs="cd"
+alias vf="cd"
+alias moer="more"
+alias moew="more"
+alias kk="ll"
+
+# code collaborator aliases
+alias cc='ccollab --scm perforce'
+alias cca='ccollab --scm perforce addchangelist new'
+
+# svn aliases
+#alias si="svn ci"
+#alias so="svn co"
+#alias sa="svn add"
+#alias sr="svn rm"
+#alias sl="svn log -v | less"
+#alias st="svn status"
+#alias sp="svn update"
+
+# cvs stuff
+#alias cvs='cvs -d :ext:vinunair@sw1:/usr/local/cvsroot'
+#alias ci="cvs ci"
+#alias co="cvs co"
+#alias ca="cvs add"
+#alias cr="cvs rm"
+#alias cl="cvs log"
+
+##alias ct="cvs status"
+#alias ct="cvs -n -q update"
+#alias cu="cvs update -d"
+#alias cf="cvs diff"
+#alias cft="gr '<<<'"
+
+# perforce stuff
+alias p4='p4 -d `pwd`'
+alias p="p4"
+alias pl="p4 login"
+alias pe="p4 edit"
+alias pr="p4 revert"
+#alias po="p4 sync | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'"
+#alias pof="p4 sync -f | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'"
+alias pn="p4 sync -n | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'"
+alias pt="p4 opened | grep -v '\.sln' | grep -v '\.vcxproj' | grep -v 'do_csum_binedit' | sed 's/ - .*//'"
+alias pta="p4 opened | sed 's/ - .*//'"
+alias pi="p4 submit"
+alias pdf="p4 diff -f"
+alias pc="p4 changes -s submitted -L -l"
+alias pcm="p4 changes -s submitted -L -l -u rnetha"
+alias pcp="p4 changes -s pending -u rnetha -l"
+alias pf="p4 filelog -L"
+alias pds="p4 describe -s"
+alias phe="v ~/fundaes/p4Info.txt"
+#alias prs="p4 resolve -n"
+alias prs="pn | grep resolve"
+alias yd='youtube-dl'
+
+# tmux
+alias ta="tmux attach"
+
+function ca() {
+    echo $@ | bc -l
+}
+
+# clean-up dead screen sessions
+# if [[ `sls | grep -s "Dead"` ]]; then 
+#     sw
+# fi
+
+function sa() {
+    t=`sls | grep T3500 | awk '{print $1}'`
+    screen -r -d ${t}
+}
+
+function v() {
+    if [[ "$#" -gt 0  ]]; then
+        gvim -geom 173x44+0+0 --remote-silent $*
+    else
+        gvim -geom 173x44+0+0
+    fi
+}
+
+#Color Codes
+#Black       0;30     Dark Gray     1;30
+#Blue        0;34     Light Blue    1;34
+#Green       0;32     Light Green   1;32
+#Cyan        0;36     Light Cyan    1;36
+#Red         0;31     Light Red     1;31
+#Purple      0;35     Light Purple  1;35
+#Brown       0;33     Yellow        1;33
+#Light Gray  0;37     White         1;37
+
+#    0   = default colour
+#    1   = bold
+#    4   = underlined
+#    5   = flashing text
+#    7   = reverse field
+#    31  = red
+#    32  = green
+#    33  = orange
+#    34  = blue
+#    35  = purple
+#    36  = cyan
+#    37  = grey
+#    40  = black background
+#    41  = red background
+#    42  = green background
+#    43  = orange background
+#    44  = blue background
+#    45  = purple background
+#    46  = cyan background
+#    47  = grey background
+#    90  = dark grey
+#    91  = light red
+#    92  = light green
+#    93  = yellow
+#    94  = light blue
+#    95  = light purple
+#    96  = turquoise
+#    100 = dark grey background
+#    101 = light red background
+#    102 = light green background
+#    103 = yellow background
+#    104 = light blue background
+#    105 = light purple background
+#    106 = turquoise background
+#
+## for LS_COLORS
+#    di = directory
+#    fi = file
+#    ln = symbolic link
+#    pi = fifo file
+#    so = socket file
+#    bd = block (buffered) special file
+#    cd = character (unbuffered) special file
+#    or = symbolic link pointing to a non-existent file (orphan)
+#    mi = non-existent file pointed to by a symbolic link (visible when you type ls -l)
+#    ex = file which is executable (ie. has 'x' set in permissions).
+#export LS_COLORS='di=5;32;42:fi=0:ln=31:pi=5:so=5:bd=5:cd=5:or=31:mi=0:ex=35:*.rpm=90'
+
+#function ls() {
+    #if [[ "$#" -eq 0 ]]; then
+        #less .
+        #return
+    #fi
+
+    #less "$@"
+#}
+function tm() {
+    sn=kaam
+
+    # Start the session and window 0 in /etc
+    #   This will also be the default cwd for new windows created
+    #   via a binding unless overridden with default-path.
+    # cd /etc
+    tmux new-session -s "$sn" -n genraal -d
+
+    # Create a bunch of windows in /var/log
+    # cd /var/log
+    tmux new-window -t "$sn:1" -n compiling
+    tmux new-window -t "$sn:2" -n testing
+    tmux new-window -t "$sn:3" -n ssh
+
+    # Set the default cwd for new windows (optional, otherwise defaults to session cwd)
+    #tmux set-option default-path /
+
+    # Select window #1 and attach to the session
+    tmux select-window -t "$sn:0"
+    tmux -2 attach-session -t "$sn"
+}
+
+
+function mk() {
+    make 2>&1 | tee make.log | histring -c green -fiE "^=.*" | histring -c red -fiE "^.*error.*$" | histring -c blue -fiE "^.*warning.*$"
+}
+
+
+# p4 functions
+function ph() {
+    p4 have $@ | sed 's/ - .*//'
+}
+
+function pco() {
+    p4 client -o $@
+}
+
+function prr() {
+    for i in `p4 opened`; do
+        if [[ ${i} =~ ^(\/.*)#.*$ ]]; then
+            f=${BASH_REMATCH[1]} 
+            if [[ ${f} =~ ^\/.*\.sln.* ]]; then
+                continue
+            fi
+            if [[ ${f} =~ ^\/.*\.vcxproj ]]; then
+                continue
+            fi
+            if [[ ${f} =~ ^\/.*do_csum_binedit ]]; then
+                continue
+            fi
+            if [[ "$#" -gt 1  ]]; then
+                echo revert ${f} ?
+                if ask "revert ${f} ?"; then
+                    r=y
+                else
+                    r=n
+                fi
+            fi
+
+            if [[ ${r} =~ y ]]; then
+                echo reverting ${f}
+                p4 revert ${f}
+            fi
+        fi
+    done
+}
+
+function po() {
+    if [[ "$#" -eq 0 ]]; then
+        p4 sync | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'
+    else
+        p4 sync $@ | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'
+    fi
+}
+
+function pof() {
+    if [[ "$#" -eq 0 ]]; then
+        p4 sync -f | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'
+    else
+        p4 sync -f $@ | histring -c green -fiE '^=.*' | histring -c red -fiE '^.*must resolve.*$|^.*is opened.*$' | histring -c blue -fiE '^.*warning.*$'
+    fi
+}
+
+function pd() {
+    f=d_`basename ${1}`
+    \\rm ~/.p4tmp/${f} > /dev/null 2>&1
+    p4 print -q -o ~/.p4tmp/${f} ${1}
+    vd ~/.p4tmp/${f} ${1}
+}
+
+function pd2() {
+    if [[ "$#" -eq 3 ]]; then
+        m=${2}
+        n=${3}
+    elif [[ "$#" -eq 2 ]]; then
+        n=${2}
+        m=$((n-1))
+    else
+        f=`ph ${1}`
+        if [[ ${f} =~ ^\/.*#(.*).+-.*$ ]]; then
+            n=${BASH_REMATCH[1]}
+            m=$((n-1))
+        fi
+    fi
+
+    f1=${1}#${m}
+    f2=${1}#${n}
+    e1=#${m}_${1}
+    e2=#${n}_${1}
+
+    \\rm ~/.p4tmp/${e1} ~/.p4tmp/${e2} > /dev/null 2>&1
+    p4 print -q -o ~/.p4tmp/${e1} ${f1}
+    p4 print -q -o ~/.p4tmp/${e2} ${f2}
+    vd ~/.p4tmp/${e1} ~/.p4tmp/${e2} 
+}
+
+function pd22() {
+    f1=d1_`basename ${1}`
+    f2=d2_`basename ${2}`
+    if [[ ${f1} =~ ^(.*)#.*$ ]]; then
+        f1=${BASH_REMATCH[1]} 
+    fi
+    if [[ ${f2} =~ ^(.*)#.*$ ]]; then
+        f2=${BASH_REMATCH[1]} 
+    fi
+    \\rm ~/.p4tmp/${f1} ~/.p4tmp/${f2} > /dev/null 2>&1
+    p4 print -q -o ~/.p4tmp/${f1} ${1}
+    p4 print -q -o ~/.p4tmp/${f2} ${2}
+    vd ~/.p4tmp/${f1} ~/.p4tmp/${f2} 
+}
+
+function cpp() {
+    mbk ${1}
+    dir=`mbke ${1}`
+    pw=`pwd`
+    for i in `p4 opened`; do
+        if [[ ${i} =~ ^(\/.*)#.*$ ]]; then
+            f=${BASH_REMATCH[1]} 
+            if [[ ${f} =~ ".sln.*" ]]; then
+                continue
+            fi
+            if [[ ${f} =~ ".vcxproj" ]]; then
+                continue
+            fi
+            if [[ ${f} =~ "do_csum_binedit" ]]; then
+                continue
+            fi
+            #\cp `p4 where ${f} | awk '{print $3}'` $1
+            rsr `p4 where ${f} | awk '{print $3}' | sed "s,$pw/,,"` ${dir}
+        fi
+    done
+}
+
+function wse() {
+    if [[ "$#" -eq 0 ]]; then
+        pw=`pwd`
+    else
+        pw=${1}
+    fi
+    ws=`basename ${pw}`
+    sed -i "s,\(^.*p4ws/\).*$,\1$ws," ~/.screenrc
+}
+
+# Use vim as a manpage reader
+function vman() {
+  man $* | col -bp | iconv -c | view -c "set ft=man nomod nolist so=999 ts=8 wrap\
+  titlestring=man\ ${1}" -
+}
+
+# Use gvim as a manpage reader
+function wman() {
+  man $* | col -bp | iconv -c | gview -c "set ft=man nomod nolist so=999 ts=8 wrap\
+  titlestring=man\ ${1}" -
+}
+
+# function _cd()
+# {
+#     if [[ "$#" -eq 0 ]]; then
+#         \cd > /dev/null
+#     elif [[ "${1}" == "-" ]]; then
+#         \cd - > /dev/null
+#     else
+#         pushd . > /dev/null; \cd "${1}" > /dev/null
+#     fi
+# }
+
+function _xrpm()
+{
+  rpm2cpio ${1} | cpio -idv
+}
+
+
+#function _ca()
+#{
+  #find "$1" -path '*CVS*' -prune -o -type d -exec cvs add {} \; -print
+  #find "$1" -path '*CVS*' -prune -o -type f -exec cvs add {} \; -print
+#}
+
+function synreg()
+{
+    synregtest -test `pwd` -build ${1} -cleanup never -compress never
+}
+
+function certreg()
+{
+    certregtest -test `pwd` -build ${1} -cleanup never -compress never
+}
+
+# copy the regression folders using rsync
+function getregs() {
+    if [[ "$#" -eq 1 ]]; then
+        dir=${2}
+    else
+        dir=.
+    fi
+
+    for i in `cat ${1}`; do
+        if [[ ${i} =~ ^#.* ]]; then
+            continue
+        fi
+        echo "== ${i} =="
+        rsr rnetha@sbgrhvms15:${i} ${2}
+    done
+}
+
+# prepare syn using windows-based symlinks. cygwin symlinks are not recognised
+function mksyn() {
+    dir="win64"
+    del=0
+    OPTIND=1
+
+    while getopts "cms" opt; do
+        case $opt in
+            m)
+                dir="bin64"
+                ;;
+            c)
+                del=1
+                ;;
+            s)
+                bld=${1}
+                ;;
+            ?)
+                echo "Illegal Option"
+                return
+                ;;
+        esac
+    done
+
+    shift $((OPTIND-1))
+
+    bld=${rel}/`getlrel ${1}`
+
+    echo "\rm syn.lnk"
+    \rm syn.lnk > /dev/null 2>&1
+
+    #echo "mklink /d syn.lnk `cygpath -w ${bld}`"
+    mklink /d 'syn.lnk' `cygpath -w ${bld}`
+
+    if [[ ${del} -eq 0  ]]; then
+        return
+    fi
+
+    echo "\rm -rf syn"
+    \rm -rf syn > /dev/null 2>&1
+    echo "mkdir syn"
+    mkdir syn
+
+    for i in syn.lnk/*; do 
+        if [[ ${i} =~ ${dir} ]]; then
+            continue
+        fi
+
+        j=`basename ${i}` 
+        if [[ -d ${i} ]]; then
+            #echo "mklink /d syn\\$j syn.lnk\\$j" 
+            mklink /d 'syn\'${j} '..\syn.lnk\'${j}
+        else
+            #echo "mklink syn\\$j syn.lnk\\$j" 
+            mklink 'syn\'${j} '..\syn.lnk\'${j}
+        fi
+    done
+
+    echo "\cp -rf syn.lnk/${dir} syn"
+    \cp -rf syn.lnk/${dir} syn
+
+    if [[ ${dir} =~ win64 ]]; then
+        echo "cpdbu"
+        \cp -f //in01filer08/dev/QTLIB/qt_472/nt2005_64/lib/*d4.dll syn/win64/mbin/
+    else
+        echo "cpdbm"
+        \cp -f thirdparty/python/lib/win64/*_d.dll syn/bin64/
+    fi
+}
+
+function sy_() {
+    dir=""
+    log=make.log
+    arch="win64"
+    clean=0
+    OPTIND=1
+
+    while getopts "abcL:ptuxW" opt; do
+        case $opt in
+            a)
+                dir="mappers/altera"
+                ;;
+            b)
+                dir="uitools/certbatch"
+                ;;
+            c)
+                clean=1
+                ;;
+            # L)
+            #     log=${OPTARG}
+            #     ;;
+            p)
+                dir="uitools/p_plan"
+                ;;
+            t)
+                dir="uitools/certifyunittests"
+                ;;
+            u)
+                dir="ui/certify"
+                ;;
+            x)
+                dir="mappers/xilinx"
+                ;;
+            W)
+                arch="win32"
+                ;;
+            ?)
+                echo "Illegal Option"
+                return
+                ;;
+        esac
+    done
+
+    shift $((OPTIND-1))
+
+    if [[ ${clean} -eq 1 ]]; then
+        synmake clean
+    else
+        synmake -C ${dir} TARGET_ARCH=${arch} install-G 2>&1 | tee ${log} | grep -v "PDB" | histring -c green -fiE "^=.*" | histring -c red -fiE "^.*error.*$" | histring -c blue -fiE "^.*warning.*$" | grep -v "failed to remove install"
+    fi
+    sed -i 's/\r$//' ${log}
+}
+
+function pbk() {
+    pw=`pwd`
+    echo "${bk}/`basename ${pw}`"
+}
+
+#copy the configuration files
+function cpconf() {
+    if [[ "$#" -eq 1 ]]; then
+        dir=${1}
+    else
+        dir=~/warez/config
+    fi
+    f=${dir}`date +%d%b%y`.tar.bz2
+    \cp -rf ~/.bash_profile ~/.bashrc ~/.gvimrc ~/.inputrc ~/.mailcap ~/.mrxvtrc ~/.msmtprc ~/.mutt/ ~/.startxwinrc  ~/.vim ~/.vimrc ~/.screenrc ${dir}/linux
+    \cp -rf /usr/bin/urxvt.vbe /cygdrive/c/Program\ Files\ \(x86\)/Vim/_vimrc ${dir}/windows
+    \cp /usr/lib/urxvt/perl/tabbedex ${dir}
+    \cp -rf ~/warez/vim/vimstuff ${dir}
+    tar cvjf ${f} ${dir}
+    echo -e "${red}== tarball : ${f} =="
+}
+
+function md() {
+    mkdir `dt`${1}
+}
+
+function mbk() {
+    mkdir -p `pbk`/`dt`${1}
+}
+
+function mbke() {
+    echo `pbk`/`dt`${1}
+}
+
+function getl() {
+    arr=(`${1}`)
+    echo ${arr[${#arr[@]}-1]}
+}
+
+function lst() {
+    getl "ls -tr"
+}
+
+function olst() {
+    ${1} `lst`
+}
+
+function rel() {
+    r=`ls -tr ${rel} 2> /dev/null | grep ${1}`
+    echo $r
+}
+
+function getlrel() {
+    arr=(`\ls -tr ${rel} 2> /dev/null | grep ${1}`)
+    echo ${arr[${#arr[@]}-1]}
+}
+
+function reglog() {
+    find ~/regRes/*.log -mtime -${1} -exec ls -l {} \;
+}
+
+function reglogt() {
+    find ~/regRes/*.log -mtime -${1} -exec egrep "\-test" {} \; -print
+}
+
+#function man ()
+#{
+#    xtitle The $(basename $1|tr -d .[:digit:]) manual
+#    /usr/bin/man -a "$*"
+#}
+
+#-----------------------------------------
+# Environment dependent functions
+#-----------------------------------------
+
+# Note: we mustn't mix these with alias definitions in the same 'if/fi'
+# construct because alias expansion wouldn't occur in some functions here, 
+# like 'll' that uses ls (which is an alias).
+
+
+function ll(){ ls -l  $*| egrep "^d" ; ls -lh  $* 2>&-| egrep -v "^d|total "; }
+
+#-----------------------------------
+# File & strings related functions:
+#-----------------------------------
+
+#function ff() { find $1 -name '*'$2'*' ; }
+#function fe() { find $1 -name '*'$2'*' -exec $3 {} \; ; }
+function ff() { 
+    if [[ "$#" -eq 2 ]]; then
+        dir=${1}
+        pat=${2}
+    elif [[ "$#" -eq 1 ]]; then
+        dir='.'
+        pat=${1}
+    else 
+        echo "Usage : fs <dir> <pattern>"
+    fi
+    
+    find "${dir}" -name "${pat}" 
+}
+
+function fd() { 
+    if [[ "$#" -eq 2 ]]; then
+        dir=${1}
+        pat=${2}
+    elif [[ "$#" -eq 1 ]]; then
+        dir='.'
+        pat=${1}
+    else 
+        echo "Usage : fd <dir> <pattern>"
+    fi
+    
+    find "${dir}" -name "${pat}" -type d
+}
+
+function fe() { 
+    if [[ "$#" -eq 3 ]]; then
+        dir=${1}
+        pat=${2}
+        cmd=${3}
+    elif [[ "$#" -eq 2 ]]; then
+        dir='.'
+        pat=${1}
+        cmd=${2}
+    else 
+        echo "Usage : fe <dir> <pattern> <cmd>"
+    fi
+    
+    find "${dir}" -name "${pat}" -exec "${cmd}" {} \; -print 
+}
+
+function fs() { 
+    if [[ "$#" -eq 3 ]]; then
+        dir=${1}
+        pat=${2}
+        str=${3}
+    elif [[ "$#" -eq 2 ]]; then
+        dir='.'
+        pat=${1}
+        str=${2}
+    else 
+        echo "Usage : fs <dir> <file-pattern> <search-pattern>"
+    fi
+    
+    find "${dir}" -name "${pat}" -exec egrep -ni "${str}" {} \; -print 
+}
+
+function fsc() { 
+    if [[ "$#" -eq 3 ]]; then
+        dir=${1}
+        pat=${2}
+        str=${3}
+    elif [[ "$#" -eq 2 ]]; then
+        dir='.'
+        pat=${1}
+        str=${2}
+    else 
+        echo "Usage : fsc <dir> <file-pattern> <search-pattern>"
+    fi
+    
+    find "${dir}" -name "${pat}" -exec egrep "${str}" {} \; -print 
+}
+
+#function ph() { lynx -dump http://mis1.softjin.com/apps/InfoMgmt/db/PhoneBook.jsp | egrep -i "$1"; }
+
+#function fstr() # find a string in a set of files
+#{
+    #if [[ "$#" -gt 2 ]]; then
+        #echo "Usage: fstr \"pattern\" [files] "
+    #return;
+    #fi
+    #find . -type f -name "${2:-*}" -print | xargs grep -n "$1"
+#}
+
+function cuttail() # cut last n lines in file
+{
+    nlines=${1}
+    sed -n -e :a -e "1,${nlines}!{P;N;D;};N;ba" ${2}
+}
+
+#function lowercase()  # move filenames to lowercase
+#{
+    #for file ; do
+        #filename=${file##*/}
+        #case "$filename" in
+        #*/*) dirname==${file%/*} ;;
+        #*) dirname=.;;
+        #esac
+        #nf=$(echo $filename | tr A-Z a-z)
+        #newname="${dirname}/${nf}"
+        #if [[ "$nf" != "$filename" ]]; then
+            #mv "$file" "$newname"
+            #echo "lowercase: $file --> $newname"
+        #else
+            #echo "lowercase: $file not changed."
+        #fi
+    #done
+#}
+
+function swap()		# swap 2 filenames around
+{
+    local TMPFILE=tmp.$$
+    mv ${1} ${TMPFILE}
+    mv ${2} ${1}
+    mv ${TMPFILE} ${2}
+}
+
+
+# Process/system related functions:
+
+function pp() { ps | gawk '!/gawk/ && $0~pat' pat=${1:-".*"} ; }
+function killps()	# Kill process by name
+{			# works with gawk too
+    local pid pname sig="-TERM" # default signal
+    if [[ "$#" -lt 1 ]] || [[ "$#" -gt 2 ]]; then 
+	echo "Usage: killps [-SIGNAL] pattern"
+	return;
+    fi
+    if [[ $# = 2 ]]; then sig=$1 ; fi
+    for pid in $(ps | gawk '!/gawk/ && $0~pat { print $2 }' pat=${!#}) ; do
+	pname=$(ps | gawk '$2~var { print $6 }' var=$pid )
+	if ask "Kill process $pid <$pname> with signal $sig ? "
+	    then kill $sig $pid
+	fi
+    done
+}
+
+#function ii()   # get current host related info
+#{
+    #echo -e "\nYou are logged on ${RED}$HOSTNAME"
+    #echo -e "\nAdditionnal information:$NC " ; uname -a
+    #echo -e "\n${RED}IP Address :$NC" ; hostname -i 
+    #echo -e "\n${RED}Users logged on:$NC " ; /usr/bin/users
+    #echo -e "\n${RED}Current date :$NC " ; date
+    #echo -e "\n${RED}Machine stats :$NC " ; uptime
+    #echo -e "\n${RED}Memory stats :$NC " ; vmstat
+    #echo
+#}
+
+#function corename()   # get name of app that created core
+#{
+    #local file name;
+    #file=${1:-"core"}
+    #set -- $(adb $file < /dev/null 2>&1 | sed 1q)
+    #name=${7#??}
+    #echo $file: ${name%??}
+#}
+# Misc utilities:
+
+#function repeat()	# repeat n times command
+#{
+    #local i max
+    #max=$1; shift;
+    #for ((i=1; i <= max ; i++)); do
+	#eval "$@";
+    #done
+#}
+	
+
+function ask()
+{
+    echo -n "$@" '[y/n] ' ; read ans
+    case "${ans}" in
+        y*|Y*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+function cp_p()
+{
+   strace -q -ewrite cp -- "${1}" "${2}" 2>&1 \
+      | awk '{
+        count += $NF
+            if (count % 10 == 0) {
+               percent = count / total_size * 100
+               printf "%3d%% [", percent
+               for (i=0;i<=percent;i++)
+                  printf "="
+               printf ">"
+               for (i=percent;i<100;i++)
+                  printf " "
+               printf "]\r"
+            }
+         }
+         END { print "" }' total_size=$(stat -c '%s' "${1}") count=0
+}
+
+function xtitle () 
+{ 
+    case ${TERM} in
+	xterm* | dtterm | *rxvt*) 
+	    echo -n -e "\033]0;$*\007" ;;
+	*)  ;;
+    esac
+}
+
+cd

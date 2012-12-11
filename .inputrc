@@ -1,0 +1,55 @@
+# kick-off emacs
+set editing-mode vi
+$if mode=vi
+    # these are for vi-command mode
+    set keymap vi-command
+    # clear screen
+    "\C-l":clear-screen
+    # these are for vi-insert mode
+    set keymap vi-insert
+    # Incremental searching of command history
+    "\e[A": history-search-backward
+    "\e[B": history-search-forward
+    "\e[5~": history-search-backward
+    "\e[6~": history-search-forward
+    "\C-p": history-search-backward
+    "\C-n": history-search-forward
+    # Edit options before rerunning previous command, eg: ls a b c -> ls -al a b c
+    "\C-o": "\e-0eli "
+    # glob patterns without executing, eg: 'rm *x'
+    "\C-e": glob-expand-word
+    # Two escapes clear command line.
+    #"\e\e": "\C-a\C-k"
+    #"\e\e": "\e0\C-ki"
+    #"\e[C": forward-char
+    #"\e[D": backward-char
+$endif
+
+TAB: menu-complete
+
+# Magic space
+$if Bash
+  Space: magic-space
+$endif
+
+# Insert-Option Macro
+"\M-o": "\C-p\C-a\M-f "
+
+# keep hidden files hidden
+set match-hidden-files off
+
+# ignore case
+set completion-ignore-case on
+
+# append / for directory and * for files
+set visible-stats on
+
+# cycle thru potential completions
+set show-all-if-ambiguous on
+
+# Meta+s cycle thru the list
+"\M-s": menu-complete
+
+# utf8
+set convert-meta off
+set output-meta on
